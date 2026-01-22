@@ -2,12 +2,6 @@ import type { ReactNode } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return [{ locale: "it" }, { locale: "en" }];
-}
-
 function toLocale(x: string): "it" | "en" {
   return x === "en" ? "en" : "it";
 }
