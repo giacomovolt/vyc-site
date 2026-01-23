@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-function toLocale(x: string): "it" | "en" {
+function toLocale(x: unknown): "it" | "en" {
   return x === "en" ? "en" : "it";
 }
 
@@ -11,10 +11,11 @@ export default async function LocaleLayout({
   params,
 }: {
   children: ReactNode;
-  params: Promise<{ locale: string }>;
+  params: any;
 }) {
-  const { locale: raw } = await params;
-  const locale = toLocale(raw);
+  // params può essere un oggetto o una Promise (Next 16 può comportarsi in modo diverso tra dev/prod)
+  const resolved = await Promise.resolve(params);
+  const locale = toLocale(resolved?.locale);
 
   return (
     <div className="min-h-screen bg-slate-950">
