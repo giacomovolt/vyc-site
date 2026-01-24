@@ -14,7 +14,7 @@ export default async function Home({ params }: { params: any }) {
   <div className="relative min-h-[70vh] overflow-hidden">
     {/* Background image */}
     <Image
-      src="/images/copertina.jpg"
+      src="/images/copertina.JPG"
       alt="VYC - Solal"
       fill
       priority
