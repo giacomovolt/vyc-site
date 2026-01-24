@@ -34,14 +34,23 @@ export default async function Home({ params }: { params: any }) {
           : "Welcome. Request availability and a tailored quote."}
       </p>
 
-      <div className="mt-8">
-        <Link
-          href={`/${locale}/contact`}
-          className="rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950"
-        >
-          {locale === "it" ? "Richiedi disponibilità" : "Request availability"}
-        </Link>
-      </div>
+      <div className="mt-8 flex flex-wrap gap-3">
+  <Link
+    href={`/${locale}/contact`}
+    className="rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950"
+  >
+    {locale === "it" ? "Richiedi disponibilità" : "Request availability"}
+  </Link>
+
+  <a
+    href="https://wa.me/385993334450?text=Ciao%20VYC!%20Vorrei%20info%20e%20disponibilit%C3%A0%20per%20Solal%20🙏"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="rounded-full bg-green-500 px-5 py-3 text-sm font-medium text-white"
+  >
+    WhatsApp
+  </a>
+</div>
     </div>
   </div>
 );
