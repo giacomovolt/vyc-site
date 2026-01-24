@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Image from "next/image";
 
 function toLocale(x: unknown): "it" | "en" {
@@ -11,6 +11,7 @@ export default async function Home({ params }: { params: any }) {
   const locale = toLocale(resolved?.locale);
 
   return (
+    <>
   <div className="relative min-h-[70vh] overflow-hidden">
     {/* Background image */}
     <Image
@@ -43,7 +44,11 @@ export default async function Home({ params }: { params: any }) {
   </Link>
 
   <a
-    href="https://wa.me/385993334450?text=Ciao%20VYC!%20Vorrei%20info%20e%20disponibilit%C3%A0%20per%20Solal%20🙏"
+    href={`https://wa.me/385993334450?text=${
+  locale === "it"
+    ? "Ciao%20VYC!%20Vorrei%20info%20e%20disponibilit%C3%A0%20per%20Solal%20%F0%9F%99%8F"
+    : "Hi%20VYC!%20I'd%20like%20info%20and%20availability%20for%20Solal%20%F0%9F%99%8F"
+}`}
     target="_blank"
     rel="noopener noreferrer"
     className="rounded-full bg-green-500 px-5 py-3 text-sm font-medium text-white"
@@ -53,5 +58,7 @@ export default async function Home({ params }: { params: any }) {
 </div>
     </div>
   </div>
+  <WhatsAppFloatingButton locale={locale} />
+</>
 );
 }
