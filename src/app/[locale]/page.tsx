@@ -1,7 +1,7 @@
 import Link from "next/link";
 import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import Image from "next/image";
-import Gallery from "@/components/Gallery";
+import Gallery from "@/components/gallery";
 
 function toLocale(x: unknown): "it" | "en" {
   return x === "en" ? "en" : "it";
