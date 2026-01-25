@@ -6,7 +6,7 @@ type Locale = "it" | "en";
 
 type LightboxItem = {
   src: string;
-  label: string;
+  sectionTitle: string;
 };
 
 export default function Gallery({ locale }: { locale: Locale }) {
@@ -72,25 +72,13 @@ export default function Gallery({ locale }: { locale: Locale }) {
   const toys = ["toy1.JPG", "toy2.JPG"];
   const brochurePdf = "solal-brochure.pdf";
 
-  // Costruiamo una lista piatta per la navigazione del lightbox
   const flat: LightboxItem[] = useMemo(() => {
     const items: LightboxItem[] = [];
-
-    for (const img of exterior) {
-      items.push({ src: `${base}${img}`, label: `${t.exterior} • ${img}` });
-    }
-    for (const img of interior) {
-      items.push({ src: `${base}${img}`, label: `${t.interior} • ${img}` });
-    }
-    for (const img of mood) {
-      items.push({ src: `${base}${img}`, label: `${t.mood} • ${img}` });
-    }
-    // layout e toys dentro la stessa navigazione
-    items.push({ src: `${base}${layout}`, label: `${t.layout} • ${layout}` });
-    for (const img of toys) {
-      items.push({ src: `${base}${img}`, label: `${t.toys} • ${img}` });
-    }
-
+    for (const img of exterior) items.push({ src: `${base}${img}`, sectionTitle: t.exterior });
+    for (const img of interior) items.push({ src: `${base}${img}`, sectionTitle: t.interior });
+    for (const img of mood) items.push({ src: `${base}${img}`, sectionTitle: t.mood });
+    items.push({ src: `${base}${layout}`, sectionTitle: t.layout });
+    for (const img of toys) items.push({ src: `${base}${img}`, sectionTitle: t.toys });
     return items;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale]);
@@ -103,20 +91,16 @@ export default function Gallery({ locale }: { locale: Locale }) {
     setIndex(i >= 0 ? i : 0);
     setOpen(true);
   }
-
   function close() {
     setOpen(false);
   }
-
   function prev() {
     setIndex((i) => (i - 1 + flat.length) % flat.length);
   }
-
   function next() {
     setIndex((i) => (i + 1) % flat.length);
   }
 
-  // ESC / frecce
   useEffect(() => {
     if (!open) return;
 
@@ -131,7 +115,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, flat.length]);
 
-  // blocca scroll sotto al lightbox
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
@@ -141,14 +124,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
     };
   }, [open]);
 
-  // Thumbnail helper (evita ripetizioni)
-  const Thumb = ({
-    img,
-    alt,
-  }: {
-    img: string;
-    alt: string;
-  }) => {
+  const Thumb = ({ img, alt }: { img: string; alt: string }) => {
     const src = `${base}${img}`;
     return (
       <button
@@ -167,13 +143,14 @@ export default function Gallery({ locale }: { locale: Locale }) {
     );
   };
 
+  const current = flat[index];
+
   return (
     <>
       <section className="mx-auto max-w-6xl px-4 py-14">
         <h2 className="text-2xl font-semibold text-white">{t.title}</h2>
         <p className="mt-2 text-slate-300">{t.subtitle}</p>
 
-        {/* EXTERIOR */}
         <div className="mt-10">
           <h3 className="text-lg font-semibold text-white">{t.exterior}</h3>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -183,7 +160,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
           </div>
         </div>
 
-        {/* INTERIOR */}
         <div className="mt-12">
           <h3 className="text-lg font-semibold text-white">{t.interior}</h3>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -193,7 +169,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
           </div>
         </div>
 
-        {/* MOOD */}
         <div className="mt-12">
           <h3 className="text-lg font-semibold text-white">{t.mood}</h3>
           <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -203,7 +178,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
           </div>
         </div>
 
-        {/* LAYOUT + TOYS */}
         <div className="mt-12 grid gap-8 md:grid-cols-2">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
             <h3 className="text-lg font-semibold text-white">{t.layout}</h3>
@@ -244,14 +218,8 @@ export default function Gallery({ locale }: { locale: Locale }) {
         </div>
       </section>
 
-      {/* LIGHTBOX */}
       {open && (
-        <div
-          className="fixed inset-0 z-[80] flex items-center justify-center p-4"
-          aria-modal="true"
-          role="dialog"
-        >
-          {/* overlay click fuori */}
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <button
             type="button"
             className="absolute inset-0 bg-black/75 backdrop-blur-sm"
@@ -259,11 +227,15 @@ export default function Gallery({ locale }: { locale: Locale }) {
             aria-label={t.close}
           />
 
+          {/* ✅ container “fisso”: non cambia dimensione tra foto */}
           <div className="relative z-[81] w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-2xl">
-            {/* top bar */}
-            <div className="flex items-center justify-between gap-3 px-4 py-3">
-              <div className="truncate text-sm text-slate-200">
-                {flat[index]?.label}
+            {/* top bar: altezza fissa */}
+            <div className="flex h-14 items-center justify-between gap-3 px-4">
+              <div className="flex items-center gap-3">
+                <div className="text-sm font-medium text-white">{current?.sectionTitle}</div>
+                <div className="text-xs text-slate-300">
+                  {index + 1} / {flat.length}
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
@@ -297,19 +269,22 @@ export default function Gallery({ locale }: { locale: Locale }) {
               </div>
             </div>
 
-            {/* image */}
-            <div className="relative w-full bg-black">
-              <img
-                src={flat[index]?.src}
-                alt={flat[index]?.label ?? "Solal"}
-                className="max-h-[80vh] w-full object-contain"
-              />
+            {/* ✅ area immagine a dimensione fissa */}
+            <div className="relative flex items-center justify-center bg-black px-2 pb-2">
+              {/* Fissa l’altezza del box immagine (non “balla”) */}
+              <div className="flex h-[72vh] w-full items-center justify-center overflow-hidden rounded-xl">
+                <img
+                  src={current?.src}
+                  alt={current?.sectionTitle ?? "Solal"}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
 
-              {/* big side arrows (desktop) */}
+              {/* side arrows: posizione fissa nel box */}
               <button
                 type="button"
                 onClick={prev}
-                className="absolute left-3 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block"
+                className="absolute left-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block"
                 aria-label={t.prev}
               >
                 ←
@@ -317,7 +292,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
               <button
                 type="button"
                 onClick={next}
-                className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block"
+                className="absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block"
                 aria-label={t.next}
               >
                 →
