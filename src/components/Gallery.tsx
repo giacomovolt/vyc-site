@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 type Locale = "it" | "en";
 
@@ -27,6 +27,8 @@ export default function Gallery({ locale }: { locale: Locale }) {
     close: locale === "it" ? "Chiudi" : "Close",
     prev: locale === "it" ? "Precedente" : "Previous",
     next: locale === "it" ? "Successiva" : "Next",
+    swipeHint:
+      locale === "it" ? "Scorri per cambiare foto" : "Swipe to change photo",
   };
 
   const exterior = [
@@ -86,21 +88,53 @@ export default function Gallery({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
+  // UI controls auto-hide on mobile
+  const [showControls, setShowControls] = useState(true);
+  const hideTimer = useRef<number | null>(null);
+
+  // Swipe tracking
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchMoved = useRef(false);
+
   function openAt(src: string) {
     const i = flat.findIndex((x) => x.src === src);
     setIndex(i >= 0 ? i : 0);
     setOpen(true);
+    setShowControls(true);
   }
+
   function close() {
     setOpen(false);
   }
+
   function prev() {
     setIndex((i) => (i - 1 + flat.length) % flat.length);
-  }
-  function next() {
-    setIndex((i) => (i + 1) % flat.length);
+    setShowControls(true);
   }
 
+  function next() {
+    setIndex((i) => (i + 1) % flat.length);
+    setShowControls(true);
+  }
+
+  const current = flat[index];
+
+  // ✅ Preload prev/next images for instant navigation
+  useEffect(() => {
+    if (!open || flat.length === 0) return;
+
+    const nextIndex = (index + 1) % flat.length;
+    const prevIndex = (index - 1 + flat.length) % flat.length;
+
+    const imgNext = new Image();
+    imgNext.src = flat[nextIndex].src;
+
+    const imgPrev = new Image();
+    imgPrev.src = flat[prevIndex].src;
+  }, [open, index, flat]);
+
+  // ESC / keyboard arrows
   useEffect(() => {
     if (!open) return;
 
@@ -115,6 +149,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, flat.length]);
 
+  // lock body scroll when open
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
@@ -124,6 +159,28 @@ export default function Gallery({ locale }: { locale: Locale }) {
     };
   }, [open]);
 
+  // auto-hide controls after a short delay (mobile-friendly)
+  useEffect(() => {
+    if (!open) return;
+
+    if (hideTimer.current) window.clearTimeout(hideTimer.current);
+    hideTimer.current = window.setTimeout(() => {
+      setShowControls(false);
+    }, 1800);
+
+    return () => {
+      if (hideTimer.current) window.clearTimeout(hideTimer.current);
+      hideTimer.current = null;
+    };
+  }, [open, index]);
+
+  function pingControls() {
+    setShowControls(true);
+    if (hideTimer.current) window.clearTimeout(hideTimer.current);
+    hideTimer.current = window.setTimeout(() => setShowControls(false), 1800);
+  }
+
+  // Thumb component
   const Thumb = ({ img, alt }: { img: string; alt: string }) => {
     const src = `${base}${img}`;
     return (
@@ -143,7 +200,52 @@ export default function Gallery({ locale }: { locale: Locale }) {
     );
   };
 
-  const current = flat[index];
+  // ✅ Swipe handlers (mobile)
+  function onTouchStart(e: React.TouchEvent) {
+    if (e.touches.length !== 1) return;
+    touchMoved.current = false;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    pingControls();
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (touchStartX.current == null || touchStartY.current == null) return;
+    const dx = e.touches[0].clientX - touchStartX.current;
+    const dy = e.touches[0].clientY - touchStartY.current;
+
+    // If user is scrolling vertically, don't hijack
+    if (Math.abs(dy) > Math.abs(dx)) return;
+
+    // Mark moved for tap-detection
+    if (Math.abs(dx) > 6) touchMoved.current = true;
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current == null || touchStartY.current == null) return;
+
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+
+    const dx = endX - touchStartX.current;
+    const dy = endY - touchStartY.current;
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    // Consider swipe only if mostly horizontal
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 45) {
+      // swipe left => next, swipe right => prev
+      if (dx < 0) next();
+      else prev();
+      return;
+    }
+
+    // If it was basically a tap, toggle controls
+    if (!touchMoved.current) {
+      setShowControls((s) => !s);
+    }
+  }
 
   return (
     <>
@@ -219,7 +321,12 @@ export default function Gallery({ locale }: { locale: Locale }) {
       </section>
 
       {open && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" aria-modal="true" role="dialog">
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center p-4"
+          aria-modal="true"
+          role="dialog"
+          onMouseMove={pingControls}
+        >
           <button
             type="button"
             className="absolute inset-0 bg-black/75 backdrop-blur-sm"
@@ -227,12 +334,17 @@ export default function Gallery({ locale }: { locale: Locale }) {
             aria-label={t.close}
           />
 
-          {/* ✅ container “fisso”: non cambia dimensione tra foto */}
           <div className="relative z-[81] w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-2xl">
-            {/* top bar: altezza fissa */}
-            <div className="flex h-14 items-center justify-between gap-3 px-4">
+            {/* top bar (fixed height) */}
+            <div
+              className={`flex h-14 items-center justify-between gap-3 px-4 transition-opacity duration-200 ${
+                showControls ? "opacity-100" : "opacity-0"
+              }`}
+            >
               <div className="flex items-center gap-3">
-                <div className="text-sm font-medium text-white">{current?.sectionTitle}</div>
+                <div className="text-sm font-medium text-white">
+                  {current?.sectionTitle}
+                </div>
                 <div className="text-xs text-slate-300">
                   {index + 1} / {flat.length}
                 </div>
@@ -269,22 +381,30 @@ export default function Gallery({ locale }: { locale: Locale }) {
               </div>
             </div>
 
-            {/* ✅ area immagine a dimensione fissa */}
-            <div className="relative flex items-center justify-center bg-black px-2 pb-2">
-              {/* Fissa l’altezza del box immagine (non “balla”) */}
-              <div className="flex h-[72vh] w-full items-center justify-center overflow-hidden rounded-xl">
+            {/* image area (fixed height) with swipe */}
+            <div className="relative bg-black px-2 pb-2">
+              <div
+                className="flex h-[72vh] w-full items-center justify-center overflow-hidden rounded-xl"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+                onClick={pingControls}
+              >
                 <img
                   src={current?.src}
                   alt={current?.sectionTitle ?? "Solal"}
-                  className="max-h-full max-w-full object-contain"
+                  className="max-h-full max-w-full select-none object-contain"
+                  draggable={false}
                 />
               </div>
 
-              {/* side arrows: posizione fissa nel box */}
+              {/* side arrows fixed position (desktop) */}
               <button
                 type="button"
                 onClick={prev}
-                className="absolute left-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block"
+                className={`absolute left-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block transition-opacity duration-200 ${
+                  showControls ? "opacity-100" : "opacity-0"
+                }`}
                 aria-label={t.prev}
               >
                 ←
@@ -292,11 +412,22 @@ export default function Gallery({ locale }: { locale: Locale }) {
               <button
                 type="button"
                 onClick={next}
-                className="absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block"
+                className={`absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block transition-opacity duration-200 ${
+                  showControls ? "opacity-100" : "opacity-0"
+                }`}
                 aria-label={t.next}
               >
                 →
               </button>
+
+              {/* small hint on mobile (first time feel) */}
+              <div
+                className={`pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-slate-200 md:hidden transition-opacity duration-200 ${
+                  showControls ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {t.swipeHint}
+              </div>
             </div>
           </div>
         </div>
