@@ -76,17 +76,26 @@ export default function Gallery({ locale }: { locale: Locale }) {
 
   const flat: LightboxItem[] = useMemo(() => {
     const items: LightboxItem[] = [];
-    for (const img of exterior) items.push({ src: `${base}${img}`, sectionTitle: t.exterior });
-    for (const img of interior) items.push({ src: `${base}${img}`, sectionTitle: t.interior });
-    for (const img of mood) items.push({ src: `${base}${img}`, sectionTitle: t.mood });
+    for (const img of exterior)
+      items.push({ src: `${base}${img}`, sectionTitle: t.exterior });
+    for (const img of interior)
+      items.push({ src: `${base}${img}`, sectionTitle: t.interior });
+    for (const img of mood)
+      items.push({ src: `${base}${img}`, sectionTitle: t.mood });
     items.push({ src: `${base}${layout}`, sectionTitle: t.layout });
-    for (const img of toys) items.push({ src: `${base}${img}`, sectionTitle: t.toys });
+    for (const img of toys)
+      items.push({ src: `${base}${img}`, sectionTitle: t.toys });
     return items;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale]);
 
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
+
+  // ✅ Animation state (fade + micro zoom)
+  const [shownIndex, setShownIndex] = useState(0);
+  const [isFading, setIsFading] = useState(false);
+  const animTimer = useRef<number | null>(null);
 
   // UI controls auto-hide on mobile
   const [showControls, setShowControls] = useState(true);
@@ -99,9 +108,12 @@ export default function Gallery({ locale }: { locale: Locale }) {
 
   function openAt(src: string) {
     const i = flat.findIndex((x) => x.src === src);
-    setIndex(i >= 0 ? i : 0);
+    const nextIdx = i >= 0 ? i : 0;
+    setIndex(nextIdx);
+    setShownIndex(nextIdx);
     setOpen(true);
     setShowControls(true);
+    setIsFading(false);
   }
 
   function close() {
@@ -118,7 +130,31 @@ export default function Gallery({ locale }: { locale: Locale }) {
     setShowControls(true);
   }
 
-  const current = flat[index];
+  const currentMeta = flat[index];
+  const shown = flat[shownIndex];
+
+  // ✅ Smooth transition when index changes
+  useEffect(() => {
+    if (!open) return;
+    if (shownIndex === index) return;
+
+    // start fade out
+    setIsFading(true);
+
+    if (animTimer.current) window.clearTimeout(animTimer.current);
+
+    animTimer.current = window.setTimeout(() => {
+      setShownIndex(index);
+
+      // next tick -> fade in
+      requestAnimationFrame(() => setIsFading(false));
+    }, 130);
+
+    return () => {
+      if (animTimer.current) window.clearTimeout(animTimer.current);
+      animTimer.current = null;
+    };
+  }, [index, open, shownIndex]);
 
   // ✅ Preload prev/next images for instant navigation
   useEffect(() => {
@@ -159,7 +195,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
     };
   }, [open]);
 
-  // auto-hide controls after a short delay (mobile-friendly)
+  // auto-hide controls
   useEffect(() => {
     if (!open) return;
 
@@ -200,7 +236,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
     );
   };
 
-  // ✅ Swipe handlers (mobile)
+  // Swipe handlers
   function onTouchStart(e: React.TouchEvent) {
     if (e.touches.length !== 1) return;
     touchMoved.current = false;
@@ -214,10 +250,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
     const dx = e.touches[0].clientX - touchStartX.current;
     const dy = e.touches[0].clientY - touchStartY.current;
 
-    // If user is scrolling vertically, don't hijack
     if (Math.abs(dy) > Math.abs(dx)) return;
-
-    // Mark moved for tap-detection
     if (Math.abs(dx) > 6) touchMoved.current = true;
   }
 
@@ -233,15 +266,12 @@ export default function Gallery({ locale }: { locale: Locale }) {
     touchStartX.current = null;
     touchStartY.current = null;
 
-    // Consider swipe only if mostly horizontal
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 45) {
-      // swipe left => next, swipe right => prev
       if (dx < 0) next();
       else prev();
       return;
     }
 
-    // If it was basically a tap, toggle controls
     if (!touchMoved.current) {
       setShowControls((s) => !s);
     }
@@ -343,7 +373,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
             >
               <div className="flex items-center gap-3">
                 <div className="text-sm font-medium text-white">
-                  {current?.sectionTitle}
+                  {currentMeta?.sectionTitle}
                 </div>
                 <div className="text-xs text-slate-300">
                   {index + 1} / {flat.length}
@@ -381,7 +411,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
               </div>
             </div>
 
-            {/* image area (fixed height) with swipe */}
+            {/* image area (fixed height) with swipe + animation */}
             <div className="relative bg-black px-2 pb-2">
               <div
                 className="flex h-[72vh] w-full items-center justify-center overflow-hidden rounded-xl"
@@ -391,14 +421,18 @@ export default function Gallery({ locale }: { locale: Locale }) {
                 onClick={pingControls}
               >
                 <img
-                  src={current?.src}
-                  alt={current?.sectionTitle ?? "Solal"}
-                  className="max-h-full max-w-full select-none object-contain"
+                  src={shown?.src}
+                  alt={currentMeta?.sectionTitle ?? "Solal"}
+                  className={[
+                    "max-h-full max-w-full select-none object-contain",
+                    "transition-all duration-300 ease-out",
+                    isFading ? "opacity-0 scale-[0.985]" : "opacity-100 scale-100",
+                  ].join(" ")}
                   draggable={false}
                 />
               </div>
 
-              {/* side arrows fixed position (desktop) */}
+              {/* side arrows (desktop) */}
               <button
                 type="button"
                 onClick={prev}
@@ -420,7 +454,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
                 →
               </button>
 
-              {/* small hint on mobile (first time feel) */}
+              {/* hint mobile */}
               <div
                 className={`pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-slate-200 md:hidden transition-opacity duration-200 ${
                   showControls ? "opacity-100" : "opacity-0"
