@@ -92,19 +92,21 @@ export default function Gallery({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
-  // ✅ Animation state (fade + micro zoom)
+  // Animation state
   const [shownIndex, setShownIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
   const animTimer = useRef<number | null>(null);
 
-  // UI controls auto-hide on mobile
+  // Controls: keep simple (less repaint)
   const [showControls, setShowControls] = useState(true);
-  const hideTimer = useRef<number | null>(null);
 
   // Swipe tracking
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const touchMoved = useRef(false);
+
+  // Preload debounce
+  const preloadTimer = useRef<number | null>(null);
 
   function openAt(src: string) {
     const i = flat.findIndex((x) => x.src === src);
@@ -133,22 +135,18 @@ export default function Gallery({ locale }: { locale: Locale }) {
   const currentMeta = flat[index];
   const shown = flat[shownIndex];
 
-  // ✅ Smooth transition when index changes
+  // Smooth transition on index change
   useEffect(() => {
     if (!open) return;
     if (shownIndex === index) return;
 
-    // start fade out
     setIsFading(true);
 
     if (animTimer.current) window.clearTimeout(animTimer.current);
-
     animTimer.current = window.setTimeout(() => {
       setShownIndex(index);
-
-      // next tick -> fade in
       requestAnimationFrame(() => setIsFading(false));
-    }, 130);
+    }, 120);
 
     return () => {
       if (animTimer.current) window.clearTimeout(animTimer.current);
@@ -156,18 +154,28 @@ export default function Gallery({ locale }: { locale: Locale }) {
     };
   }, [index, open, shownIndex]);
 
-  // ✅ Preload prev/next images for instant navigation
+  // ✅ smarter preload (debounced)
   useEffect(() => {
     if (!open || flat.length === 0) return;
 
-    const nextIndex = (index + 1) % flat.length;
-    const prevIndex = (index - 1 + flat.length) % flat.length;
+    if (preloadTimer.current) window.clearTimeout(preloadTimer.current);
+    preloadTimer.current = window.setTimeout(() => {
+      const nextIndex = (index + 1) % flat.length;
+      const prevIndex = (index - 1 + flat.length) % flat.length;
 
-    const imgNext = new Image();
-    imgNext.src = flat[nextIndex].src;
+      const imgNext = new Image();
+      imgNext.decoding = "async";
+      imgNext.src = flat[nextIndex].src;
 
-    const imgPrev = new Image();
-    imgPrev.src = flat[prevIndex].src;
+      const imgPrev = new Image();
+      imgPrev.decoding = "async";
+      imgPrev.src = flat[prevIndex].src;
+    }, 140);
+
+    return () => {
+      if (preloadTimer.current) window.clearTimeout(preloadTimer.current);
+      preloadTimer.current = null;
+    };
   }, [open, index, flat]);
 
   // ESC / keyboard arrows
@@ -195,28 +203,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
     };
   }, [open]);
 
-  // auto-hide controls
-  useEffect(() => {
-    if (!open) return;
-
-    if (hideTimer.current) window.clearTimeout(hideTimer.current);
-    hideTimer.current = window.setTimeout(() => {
-      setShowControls(false);
-    }, 1800);
-
-    return () => {
-      if (hideTimer.current) window.clearTimeout(hideTimer.current);
-      hideTimer.current = null;
-    };
-  }, [open, index]);
-
-  function pingControls() {
-    setShowControls(true);
-    if (hideTimer.current) window.clearTimeout(hideTimer.current);
-    hideTimer.current = window.setTimeout(() => setShowControls(false), 1800);
-  }
-
-  // Thumb component
   const Thumb = ({ img, alt }: { img: string; alt: string }) => {
     const src = `${base}${img}`;
     return (
@@ -231,6 +217,8 @@ export default function Gallery({ locale }: { locale: Locale }) {
           alt={alt}
           className="h-44 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           loading="lazy"
+          decoding="async"
+          fetchPriority="low"
         />
       </button>
     );
@@ -242,7 +230,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
     touchMoved.current = false;
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
-    pingControls();
   }
 
   function onTouchMove(e: React.TouchEvent) {
@@ -272,9 +259,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
       return;
     }
 
-    if (!touchMoved.current) {
-      setShowControls((s) => !s);
-    }
+    if (!touchMoved.current) setShowControls((s) => !s);
   }
 
   return (
@@ -325,6 +310,8 @@ export default function Gallery({ locale }: { locale: Locale }) {
                 alt="Solal layout"
                 className="w-full object-cover"
                 loading="lazy"
+                decoding="async"
+                fetchPriority="low"
               />
             </button>
           </div>
@@ -351,12 +338,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
       </section>
 
       {open && (
-        <div
-          className="fixed inset-0 z-[80] flex items-center justify-center p-4"
-          aria-modal="true"
-          role="dialog"
-          onMouseMove={pingControls}
-        >
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" aria-modal="true" role="dialog">
           <button
             type="button"
             className="absolute inset-0 bg-black/75 backdrop-blur-sm"
@@ -365,9 +347,8 @@ export default function Gallery({ locale }: { locale: Locale }) {
           />
 
           <div className="relative z-[81] w-full max-w-6xl overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-2xl">
-            {/* top bar (fixed height) */}
             <div
-              className={`flex h-14 items-center justify-between gap-3 px-4 transition-opacity duration-200 ${
+              className={`flex h-14 items-center justify-between gap-3 px-4 transition-opacity duration-150 ${
                 showControls ? "opacity-100" : "opacity-0"
               }`}
             >
@@ -411,32 +392,31 @@ export default function Gallery({ locale }: { locale: Locale }) {
               </div>
             </div>
 
-            {/* image area (fixed height) with swipe + animation */}
             <div className="relative bg-black px-2 pb-2">
               <div
                 className="flex h-[72vh] w-full items-center justify-center overflow-hidden rounded-xl"
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
-                onClick={pingControls}
+                onClick={() => setShowControls((s) => !s)}
               >
                 <img
                   src={shown?.src}
                   alt={currentMeta?.sectionTitle ?? "Solal"}
                   className={[
                     "max-h-full max-w-full select-none object-contain",
-                    "transition-all duration-300 ease-out",
-                    isFading ? "opacity-0 scale-[0.985]" : "opacity-100 scale-100",
+                    "transition-all duration-250 ease-out will-change-transform will-change-opacity",
+                    isFading ? "opacity-0 scale-[0.99]" : "opacity-100 scale-100",
                   ].join(" ")}
                   draggable={false}
+                  decoding="async"
                 />
               </div>
 
-              {/* side arrows (desktop) */}
               <button
                 type="button"
                 onClick={prev}
-                className={`absolute left-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block transition-opacity duration-200 ${
+                className={`absolute left-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block transition-opacity duration-150 ${
                   showControls ? "opacity-100" : "opacity-0"
                 }`}
                 aria-label={t.prev}
@@ -446,7 +426,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
               <button
                 type="button"
                 onClick={next}
-                className={`absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block transition-opacity duration-200 ${
+                className={`absolute right-4 top-1/2 hidden -translate-y-1/2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-white hover:bg-white/10 md:block transition-opacity duration-150 ${
                   showControls ? "opacity-100" : "opacity-0"
                 }`}
                 aria-label={t.next}
@@ -454,9 +434,8 @@ export default function Gallery({ locale }: { locale: Locale }) {
                 →
               </button>
 
-              {/* hint mobile */}
               <div
-                className={`pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-slate-200 md:hidden transition-opacity duration-200 ${
+                className={`pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs text-slate-200 md:hidden transition-opacity duration-150 ${
                   showControls ? "opacity-100" : "opacity-0"
                 }`}
               >
