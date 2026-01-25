@@ -60,7 +60,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
 
   const layout = "Layout-San-Lorenzo-82.jpg";
   const toys = ["toy1.JPG", "toy2.JPG"];
-  const brochurePdf = "SOLAL Brochure.pdf";
+  const brochurePdf = "solal-brochure.pdf";
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-14">
