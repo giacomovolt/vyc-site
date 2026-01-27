@@ -1,4 +1,5 @@
 import Link from "next/link";
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 
 export default async function DestinationsPage({
   params,
@@ -128,70 +129,75 @@ export default async function DestinationsPage({
   const dalmatiaItems = ["kornati", "split", "trogir", "dubrovnik"] as const;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14 text-white">
-      <div className="text-xs uppercase tracking-widest text-slate-400">
-        {t.eyebrow}
-      </div>
+    <>
+      <div className="mx-auto max-w-6xl px-4 py-14 text-white">
+        <div className="text-xs uppercase tracking-widest text-slate-400">
+          {t.eyebrow}
+        </div>
 
-      <h1 className="mt-2 text-4xl font-semibold">{t.title}</h1>
+        <h1 className="mt-2 text-4xl font-semibold">{t.title}</h1>
 
-      <p className="mt-5 max-w-3xl text-slate-300">{t.intro}</p>
-      <p className="mt-4 max-w-3xl text-white/80">{t.croatiaLine}</p>
+        <p className="mt-5 max-w-3xl text-slate-300">{t.intro}</p>
+        <p className="mt-4 max-w-3xl text-white/80">{t.croatiaLine}</p>
 
-      {/* Istria */}
-      <div className="mt-12">
-        <h2 className="text-xl font-semibold text-white">{t.sections.istria}</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {istriaItems.map((key) => {
-            const card = (t.cards as any)[key];
-            return (
-              <div
-                key={key}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6"
-              >
-                <div className="text-base font-semibold">{card.title}</div>
-                <div className="mt-2 text-sm leading-relaxed text-slate-300">
-                  {card.desc}
+        {/* Istria */}
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold text-white">{t.sections.istria}</h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {istriaItems.map((key) => {
+              const card = (t.cards as any)[key];
+              return (
+                <div
+                  key={key}
+                  className="rounded-2xl border border-white/10 bg-white/5 p-6"
+                >
+                  <div className="text-base font-semibold">{card.title}</div>
+                  <div className="mt-2 text-sm leading-relaxed text-slate-300">
+                    {card.desc}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Dalmatia */}
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold text-white">{t.sections.dalmatia}</h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {dalmatiaItems.map((key) => {
+              const card = (t.cards as any)[key];
+              return (
+                <div
+                  key={key}
+                  className="rounded-2xl border border-white/10 bg-white/5 p-6"
+                >
+                  <div className="text-base font-semibold">{card.title}</div>
+                  <div className="mt-2 text-sm leading-relaxed text-slate-300">
+                    {card.desc}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <p className="mt-10 max-w-4xl text-sm leading-relaxed text-white/70">
+          {t.footnote}
+        </p>
+
+        <div className="mt-10">
+          <Link
+            href={`/${locale}/contact`}
+            className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950 hover:bg-slate-100"
+          >
+            {t.cta}
+          </Link>
         </div>
       </div>
 
-      {/* Dalmatia */}
-      <div className="mt-12">
-        <h2 className="text-xl font-semibold text-white">{t.sections.dalmatia}</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {dalmatiaItems.map((key) => {
-            const card = (t.cards as any)[key];
-            return (
-              <div
-                key={key}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6"
-              >
-                <div className="text-base font-semibold">{card.title}</div>
-                <div className="mt-2 text-sm leading-relaxed text-slate-300">
-                  {card.desc}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <p className="mt-10 max-w-4xl text-sm leading-relaxed text-white/70">
-        {t.footnote}
-      </p>
-
-      <div className="mt-10">
-        <Link
-          href={`/${locale}/contact`}
-          className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950 hover:bg-slate-100"
-        >
-          {t.cta}
-        </Link>
-      </div>
-    </div>
+      {/* ✅ WhatsApp floating button (identico alla Home) */}
+      <WhatsAppFloatingButton locale={locale} />
+    </>
   );
 }
