@@ -43,21 +43,9 @@ export default async function Home({ params }: { params: any }) {
           fill
           priority
           sizes="100vw"
-          /*
-            ✅ MOBILE:
-            - scale-[0.95] = leggero zoom out
-            - focus a destra per includere la barca
-            ✅ DESKTOP:
-            - nessuna scale
-            - centro perfetto
-          */
-          className="
-            object-cover
-            object-[72%_62%]
-            scale-[0.95]
-            sm:scale-100
-            sm:object-center
-          "
+          // ✅ SOLO questo: focus più a DESTRA su mobile (barca più “a sinistra” nello schermo)
+          // ✅ desktop invariato
+          className="object-cover object-[82%_62%] sm:object-center"
         />
 
         <div className="absolute inset-0 bg-black/45" />
@@ -78,6 +66,7 @@ export default async function Home({ params }: { params: any }) {
               </p>
             </div>
 
+            {/* ✅ bottoni più in basso su mobile, senza esagerare */}
             <div className="mt-auto pt-10 sm:mt-8 sm:pt-0">
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
@@ -100,7 +89,7 @@ export default async function Home({ params }: { params: any }) {
           </div>
         </div>
 
-        {/* sfumatura mobile + desktop */}
+        {/* ✅ sfumatura anche su web */}
         <div className="pointer-events-none absolute bottom-0 h-28 sm:h-36 w-full bg-gradient-to-t from-slate-950 to-transparent" />
       </div>
 
