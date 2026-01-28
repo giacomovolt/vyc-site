@@ -93,20 +93,17 @@ export default function Gallery({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
-  // smooth transition (same as YachtMiniGallery)
+  // Animation state
   const [shownIndex, setShownIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
   const animTimer = useRef<number | null>(null);
 
   const [showControls, setShowControls] = useState(true);
 
-  // swipe (same logic as YachtMiniGallery)
+  // Swipe tracking
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const touchMoved = useRef(false);
-
-  // preload debounce (kept, doesn’t affect visuals)
-  const preloadTimer = useRef<number | null>(null);
 
   function openAt(src: string) {
     const i = flat.findIndex((x) => x.src === src);
@@ -135,6 +132,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
   const currentMeta = flat[index];
   const shown = flat[shownIndex];
 
+  // Smooth transition on index change
   useEffect(() => {
     if (!open) return;
     if (shownIndex === index) return;
@@ -153,29 +151,23 @@ export default function Gallery({ locale }: { locale: Locale }) {
     };
   }, [index, open, shownIndex]);
 
+  // ✅ Preload IDENTICO a YachtMiniGallery (NO debounce)
   useEffect(() => {
     if (!open || flat.length === 0) return;
 
-    if (preloadTimer.current) window.clearTimeout(preloadTimer.current);
-    preloadTimer.current = window.setTimeout(() => {
-      const nextIndex = (index + 1) % flat.length;
-      const prevIndex = (index - 1 + flat.length) % flat.length;
+    const nextIndex = (index + 1) % flat.length;
+    const prevIndex = (index - 1 + flat.length) % flat.length;
 
-      const imgNext = new window.Image();
-      imgNext.decoding = "async";
-      imgNext.src = flat[nextIndex].src;
+    const imgNext = new window.Image();
+    imgNext.decoding = "async";
+    imgNext.src = flat[nextIndex].src;
 
-      const imgPrev = new window.Image();
-      imgPrev.decoding = "async";
-      imgPrev.src = flat[prevIndex].src;
-    }, 140);
-
-    return () => {
-      if (preloadTimer.current) window.clearTimeout(preloadTimer.current);
-      preloadTimer.current = null;
-    };
+    const imgPrev = new window.Image();
+    imgPrev.decoding = "async";
+    imgPrev.src = flat[prevIndex].src;
   }, [open, index, flat]);
 
+  // ESC / keyboard arrows
   useEffect(() => {
     if (!open) return;
 
@@ -190,6 +182,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, flat.length]);
 
+  // lock body scroll when open
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
@@ -223,7 +216,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
     );
   };
 
-  // Swipe handlers (identical thresholds/flow to YachtMiniGallery)
+  // Swipe handlers (già uguali)
   function onTouchStart(e: React.TouchEvent) {
     if (e.touches.length !== 1) return;
     touchMoved.current = false;
@@ -235,6 +228,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
     if (touchStartX.current == null || touchStartY.current == null) return;
     const dx = e.touches[0].clientX - touchStartX.current;
     const dy = e.touches[0].clientY - touchStartY.current;
+
     if (Math.abs(dy) > Math.abs(dx)) return;
     if (Math.abs(dx) > 6) touchMoved.current = true;
   }
@@ -400,7 +394,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
 
             <div className="relative bg-black px-2 pb-2">
               <div
-                className="flex h-[72vh] w-full items-center justify-center overflow-hidden rounded-xl touch-none overscroll-contain"
+                className="flex h-[72vh] w-full items-center justify-center overflow-hidden rounded-xl"
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
