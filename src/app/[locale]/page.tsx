@@ -36,55 +36,62 @@ export default async function Home({ params }: { params: any }) {
 
   return (
     <>
-      <div className="relative min-h-[72vh] sm:min-h-[70vh] overflow-hidden">
+      <div className="relative min-h-[76vh] sm:min-h-[70vh] overflow-hidden">
         <Image
           src="/images/copertina.JPG"
           alt="VYC - Solal"
           fill
           priority
           sizes="100vw"
-          // ✅ mobile: sposta un filo a sx per far vedere più barca
-          // ✅ desktop: rimane centrata
-          className="object-cover object-[28%_50%] sm:object-center"
+          // ✅ mobile: sposta il focus a SINISTRA + un filo più in basso (mostra meglio la barca)
+          // ✅ desktop: invariato (center)
+          className="object-cover object-[16%_62%] sm:object-center"
         />
 
         <div className="absolute inset-0 bg-black/45" />
 
-        <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-20 sm:py-16 text-white">
-          <div className="text-xs sm:text-sm tracking-wide text-white/90">
-            {t.brand}
-          </div>
+        {/* ✅ mobile: layout a colonna con bottoni più in basso */}
+        <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-16 sm:py-16 text-white">
+          <div className="flex min-h-[62vh] flex-col sm:min-h-0">
+            {/* ✅ testi un filo più in alto */}
+            <div>
+              <div className="text-xs sm:text-sm tracking-wide text-white/90">
+                {t.brand}
+              </div>
 
-          {/* ✅ mobile: leggermente più in alto (riduciamo margini top) */}
-          <h1 className="mt-2 text-3xl leading-tight sm:mt-3 sm:text-4xl font-semibold">
-            {t.headline}
-          </h1>
+              <h1 className="mt-2 text-3xl leading-tight sm:mt-3 sm:text-4xl font-semibold">
+                {t.headline}
+              </h1>
 
-          <p className="mt-4 max-w-[34ch] sm:max-w-2xl text-slate-200">
-            {t.sub}
-          </p>
+              <p className="mt-4 max-w-[34ch] sm:max-w-2xl text-slate-200">
+                {t.sub}
+              </p>
+            </div>
 
-          {/* ✅ mobile: CTA un po’ più in basso per liberare foto sopra */}
-          <div className="mt-10 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-            <Link
-              href={`/${locale}/contact`}
-              className="w-full sm:w-auto text-center rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950 hover:bg-slate-100"
-            >
-              {t.cta}
-            </Link>
+            {/* ✅ bottoni più in basso su mobile */}
+            <div className="mt-auto pt-10 sm:mt-8 sm:pt-0">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href={`/${locale}/contact`}
+                  className="w-full sm:w-auto text-center rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950 hover:bg-slate-100"
+                >
+                  {t.cta}
+                </Link>
 
-            <a
-              href={`https://wa.me/385993334450?text=${t.waText}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto text-center rounded-full bg-green-500 px-5 py-3 text-sm font-medium text-white hover:opacity-95"
-            >
-              {t.wa}
-            </a>
+                <a
+                  href={`https://wa.me/385993334450?text=${t.waText}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto text-center rounded-full bg-green-500 px-5 py-3 text-sm font-medium text-white hover:opacity-95"
+                >
+                  {t.wa}
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* ✅ gradient anche su web (desktop incluso) */}
+        {/* ✅ sfumatura anche su web */}
         <div className="pointer-events-none absolute bottom-0 h-28 sm:h-36 w-full bg-gradient-to-t from-slate-950 to-transparent" />
       </div>
 
