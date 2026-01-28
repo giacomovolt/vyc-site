@@ -43,9 +43,21 @@ export default async function Home({ params }: { params: any }) {
           fill
           priority
           sizes="100vw"
-          // ✅ MOBILE FIX: fuoco verso DESTRA per far entrare la barca (che è a destra)
-          // ✅ desktop invariato
-          className="object-cover object-[72%_62%] sm:object-center"
+          /*
+            ✅ MOBILE:
+            - scale-[0.95] = leggero zoom out
+            - focus a destra per includere la barca
+            ✅ DESKTOP:
+            - nessuna scale
+            - centro perfetto
+          */
+          className="
+            object-cover
+            object-[72%_62%]
+            scale-[0.95]
+            sm:scale-100
+            sm:object-center
+          "
         />
 
         <div className="absolute inset-0 bg-black/45" />
@@ -88,6 +100,7 @@ export default async function Home({ params }: { params: any }) {
           </div>
         </div>
 
+        {/* sfumatura mobile + desktop */}
         <div className="pointer-events-none absolute bottom-0 h-28 sm:h-36 w-full bg-gradient-to-t from-slate-950 to-transparent" />
       </div>
 
