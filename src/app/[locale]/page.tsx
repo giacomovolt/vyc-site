@@ -43,17 +43,15 @@ export default async function Home({ params }: { params: any }) {
           fill
           priority
           sizes="100vw"
-          // ✅ mobile: sposta il focus a SINISTRA + un filo più in basso (mostra meglio la barca)
-          // ✅ desktop: invariato (center)
-          className="object-cover object-[16%_62%] sm:object-center"
+          // ✅ MOBILE FIX: fuoco verso DESTRA per far entrare la barca (che è a destra)
+          // ✅ desktop invariato
+          className="object-cover object-[72%_62%] sm:object-center"
         />
 
         <div className="absolute inset-0 bg-black/45" />
 
-        {/* ✅ mobile: layout a colonna con bottoni più in basso */}
         <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-16 sm:py-16 text-white">
           <div className="flex min-h-[62vh] flex-col sm:min-h-0">
-            {/* ✅ testi un filo più in alto */}
             <div>
               <div className="text-xs sm:text-sm tracking-wide text-white/90">
                 {t.brand}
@@ -68,7 +66,6 @@ export default async function Home({ params }: { params: any }) {
               </p>
             </div>
 
-            {/* ✅ bottoni più in basso su mobile */}
             <div className="mt-auto pt-10 sm:mt-8 sm:pt-0">
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
@@ -91,7 +88,6 @@ export default async function Home({ params }: { params: any }) {
           </div>
         </div>
 
-        {/* ✅ sfumatura anche su web */}
         <div className="pointer-events-none absolute bottom-0 h-28 sm:h-36 w-full bg-gradient-to-t from-slate-950 to-transparent" />
       </div>
 
