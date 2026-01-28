@@ -36,7 +36,6 @@ export default async function Home({ params }: { params: any }) {
 
   return (
     <>
-      {/* HERO */}
       <div className="relative min-h-[72vh] sm:min-h-[70vh] overflow-hidden">
         <Image
           src="/images/copertina.JPG"
@@ -44,19 +43,20 @@ export default async function Home({ params }: { params: any }) {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center"
+          // ✅ mobile: sposta un filo a sx per far vedere più barca
+          // ✅ desktop: rimane centrata
+          className="object-cover object-[28%_50%] sm:object-center"
         />
 
-        {/* overlay */}
         <div className="absolute inset-0 bg-black/45" />
 
-        {/* contenuto */}
-        <div className="relative mx-auto max-w-6xl px-4 pt-12 pb-24 sm:py-16 text-white">
+        <div className="relative mx-auto max-w-6xl px-4 pt-10 pb-20 sm:py-16 text-white">
           <div className="text-xs sm:text-sm tracking-wide text-white/90">
             {t.brand}
           </div>
 
-          <h1 className="mt-3 text-3xl leading-tight sm:text-4xl font-semibold">
+          {/* ✅ mobile: leggermente più in alto (riduciamo margini top) */}
+          <h1 className="mt-2 text-3xl leading-tight sm:mt-3 sm:text-4xl font-semibold">
             {t.headline}
           </h1>
 
@@ -64,8 +64,8 @@ export default async function Home({ params }: { params: any }) {
             {t.sub}
           </p>
 
-          {/* CTA – mobile colonna, desktop invariato */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          {/* ✅ mobile: CTA un po’ più in basso per liberare foto sopra */}
+          <div className="mt-10 flex flex-col gap-3 sm:mt-8 sm:flex-row">
             <Link
               href={`/${locale}/contact`}
               className="w-full sm:w-auto text-center rounded-full bg-white px-5 py-3 text-sm font-medium text-slate-950 hover:bg-slate-100"
@@ -84,14 +84,12 @@ export default async function Home({ params }: { params: any }) {
           </div>
         </div>
 
-        {/* gradient di uscita – SOLO MOBILE */}
-        <div className="pointer-events-none absolute bottom-0 h-24 w-full bg-gradient-to-t from-slate-950 to-transparent sm:hidden" />
+        {/* ✅ gradient anche su web (desktop incluso) */}
+        <div className="pointer-events-none absolute bottom-0 h-28 sm:h-36 w-full bg-gradient-to-t from-slate-950 to-transparent" />
       </div>
 
-      {/* GALLERY */}
       <Gallery locale={locale} />
 
-      {/* WHATSAPP FLOATING */}
       <WhatsAppFloatingButton locale={locale} />
     </>
   );
