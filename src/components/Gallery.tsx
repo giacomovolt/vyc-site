@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 
 type Locale = "it" | "en";
 
@@ -92,20 +93,19 @@ export default function Gallery({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
-  // Animation state
+  // smooth transition (same as YachtMiniGallery)
   const [shownIndex, setShownIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
   const animTimer = useRef<number | null>(null);
 
-  // Controls: keep simple (less repaint)
   const [showControls, setShowControls] = useState(true);
 
-  // Swipe tracking
+  // swipe (same logic as YachtMiniGallery)
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const touchMoved = useRef(false);
 
-  // Preload debounce
+  // preload debounce (kept, doesn’t affect visuals)
   const preloadTimer = useRef<number | null>(null);
 
   function openAt(src: string) {
@@ -135,7 +135,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
   const currentMeta = flat[index];
   const shown = flat[shownIndex];
 
-  // Smooth transition on index change
   useEffect(() => {
     if (!open) return;
     if (shownIndex === index) return;
@@ -154,7 +153,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
     };
   }, [index, open, shownIndex]);
 
-  // ✅ smarter preload (debounced)
   useEffect(() => {
     if (!open || flat.length === 0) return;
 
@@ -163,11 +161,11 @@ export default function Gallery({ locale }: { locale: Locale }) {
       const nextIndex = (index + 1) % flat.length;
       const prevIndex = (index - 1 + flat.length) % flat.length;
 
-      const imgNext = new Image();
+      const imgNext = new window.Image();
       imgNext.decoding = "async";
       imgNext.src = flat[nextIndex].src;
 
-      const imgPrev = new Image();
+      const imgPrev = new window.Image();
       imgPrev.decoding = "async";
       imgPrev.src = flat[prevIndex].src;
     }, 140);
@@ -178,7 +176,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
     };
   }, [open, index, flat]);
 
-  // ESC / keyboard arrows
   useEffect(() => {
     if (!open) return;
 
@@ -193,7 +190,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, flat.length]);
 
-  // lock body scroll when open
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
@@ -212,19 +208,22 @@ export default function Gallery({ locale }: { locale: Locale }) {
         className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-left"
         aria-label={`Open ${alt}`}
       >
-        <img
-          src={src}
-          alt={alt}
-          className="h-44 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          loading="lazy"
-          decoding="async"
-          fetchPriority="low"
-        />
+        <div className="relative h-44 w-full">
+          <Image
+            src={src}
+            alt={alt}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            quality={45}
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            loading="lazy"
+          />
+        </div>
       </button>
     );
   };
 
-  // Swipe handlers
+  // Swipe handlers (identical thresholds/flow to YachtMiniGallery)
   function onTouchStart(e: React.TouchEvent) {
     if (e.touches.length !== 1) return;
     touchMoved.current = false;
@@ -236,7 +235,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
     if (touchStartX.current == null || touchStartY.current == null) return;
     const dx = e.touches[0].clientX - touchStartX.current;
     const dy = e.touches[0].clientY - touchStartY.current;
-
     if (Math.abs(dy) > Math.abs(dx)) return;
     if (Math.abs(dx) > 6) touchMoved.current = true;
   }
@@ -305,14 +303,18 @@ export default function Gallery({ locale }: { locale: Locale }) {
               className="mt-4 block w-full overflow-hidden rounded-xl"
               aria-label="Open layout"
             >
-              <img
-                src={`${base}${layout}`}
-                alt="Solal layout"
-                className="w-full object-cover"
-                loading="lazy"
-                decoding="async"
-                fetchPriority="low"
-              />
+              <div className="relative w-full">
+                <Image
+                  src={`${base}${layout}`}
+                  alt="Solal layout"
+                  width={1200}
+                  height={800}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  quality={55}
+                  className="h-auto w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
             </button>
           </div>
 
@@ -338,7 +340,11 @@ export default function Gallery({ locale }: { locale: Locale }) {
       </section>
 
       {open && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" aria-modal="true" role="dialog">
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center p-4"
+          aria-modal="true"
+          role="dialog"
+        >
           <button
             type="button"
             className="absolute inset-0 bg-black/75 backdrop-blur-sm"
@@ -394,7 +400,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
 
             <div className="relative bg-black px-2 pb-2">
               <div
-                className="flex h-[72vh] w-full items-center justify-center overflow-hidden rounded-xl"
+                className="flex h-[72vh] w-full items-center justify-center overflow-hidden rounded-xl touch-none overscroll-contain"
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
