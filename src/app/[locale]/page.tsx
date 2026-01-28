@@ -45,7 +45,7 @@ export default async function Home({ params }: { params: any }) {
           sizes="100vw"
           // ✅ SOLO questo: focus più a DESTRA su mobile (barca più “a sinistra” nello schermo)
           // ✅ desktop invariato
-          className="object-cover object-[82%_62%] sm:object-center"
+          className="object-cover object-[72%_62%] sm:object-center"
         />
 
         <div className="absolute inset-0 bg-black/45" />
