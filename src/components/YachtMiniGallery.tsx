@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 
 type Locale = "it" | "en";
 
@@ -100,11 +101,11 @@ export default function YachtMiniGallery({ locale }: { locale: Locale }) {
     const nextIndex = (index + 1) % flat.length;
     const prevIndex = (index - 1 + flat.length) % flat.length;
 
-    const imgNext = new Image();
+    const imgNext = new window.Image();
     imgNext.decoding = "async";
     imgNext.src = flat[nextIndex].src;
 
-    const imgPrev = new Image();
+    const imgPrev = new window.Image();
     imgPrev.decoding = "async";
     imgPrev.src = flat[prevIndex].src;
   }, [open, index, flat]);
@@ -182,14 +183,18 @@ export default function YachtMiniGallery({ locale }: { locale: Locale }) {
             className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-left"
             aria-label="Open photo"
           >
-            <img
-              src={item.src}
-              alt={`Solal ${item.sectionTitle}`}
-              className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-              loading="lazy"
-              decoding="async"
-              fetchPriority="low"
-            />
+            {/* ✅ Wrapper fixed height identical to old <img className="h-40 w-full ..."> */}
+            <div className="relative h-40 w-full">
+              <Image
+                src={item.src}
+                alt={`Solal ${item.sectionTitle}`}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                quality={45}
+                className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                loading="lazy"
+              />
+            </div>
           </button>
         ))}
       </div>
@@ -253,6 +258,7 @@ export default function YachtMiniGallery({ locale }: { locale: Locale }) {
                 onTouchEnd={onTouchEnd}
                 onClick={() => setShowControls((s) => !s)}
               >
+                {/* ✅ Lightbox stays <img> to keep your fade/scale EXACT */}
                 <img
                   src={shown?.src}
                   alt={currentMeta?.sectionTitle ?? "Solal"}
