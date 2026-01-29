@@ -14,9 +14,9 @@ export default async function Home({ params }: { params: any }) {
   const t = {
     it: {
       brand: "VYC • Vega Yacht Charter",
-      headline: "Solal, il tuo tempo sul mare.",
+      headline: "Solal, your connection to the sea.",
       sub:
-        "Un charter curato e rilassante lungo la costa croata. Baie protette, acqua cristallina e serate in rada. Raccontaci le tue date: pensiamo noi al resto.",
+        "Un charter curato e rilassante lungo la costa croata. Baie protette, acqua cristallina e serate in rada. Dicci quando vorresti partire, al resto pensiamo noi.",
       cta: "Richiedi disponibilità",
       wa: "WhatsApp",
       waText:
@@ -24,9 +24,9 @@ export default async function Home({ params }: { params: any }) {
     },
     en: {
       brand: "VYC • Vega Yacht Charter",
-      headline: "Solal, your time at sea.",
+      headline: "Solal, your connection to the sea.",
       sub:
-        "A relaxed, curated charter along the Croatian coast. Sheltered bays, clear water and calm evenings at anchor. Share your dates and we’ll take care of the rest.",
+        "A relaxed, curated charter along the Croatian coast. Sheltered bays, clear water and calm evenings at anchor. Tell when you want to set sail and we’ll take care of the rest.",
       cta: "Request availability",
       wa: "WhatsApp",
       waText:
@@ -43,14 +43,38 @@ export default async function Home({ params }: { params: any }) {
           fill
           priority
           sizes="100vw"
-          // ✅ SOLO questo: focus più a DESTRA su mobile (barca più “a sinistra” nello schermo)
-          // ✅ desktop invariato
-          className="object-cover object-[60%_62%] sm:object-center"
+          className="object-cover object-[74%_62%] sm:object-center"
         />
 
         <div className="absolute inset-0 bg-black/45" />
 
         <div className="relative mx-auto max-w-6xl px-4 pt-8 pb-16 sm:py-16 text-white">
+          {/* Language toggle */}
+          <div className="absolute right-4 top-4 z-10">
+            <div className="inline-flex overflow-hidden rounded-full border border-white/15 bg-black/25 backdrop-blur-sm">
+              <Link
+                href="/it"
+                className={`px-3 py-1.5 text-xs font-medium transition ${
+                  locale === "it"
+                    ? "bg-white text-slate-950"
+                    : "text-white/85 hover:text-white"
+                }`}
+              >
+                IT
+              </Link>
+              <Link
+                href="/en"
+                className={`px-3 py-1.5 text-xs font-medium transition ${
+                  locale === "en"
+                    ? "bg-white text-slate-950"
+                    : "text-white/85 hover:text-white"
+                }`}
+              >
+                EN
+              </Link>
+            </div>
+          </div>
+
           <div className="flex min-h-[62vh] flex-col sm:min-h-0">
             <div>
               <div className="text-xs sm:text-sm tracking-wide text-white/90">
@@ -66,7 +90,6 @@ export default async function Home({ params }: { params: any }) {
               </p>
             </div>
 
-            {/* ✅ bottoni più in basso su mobile, senza esagerare */}
             <div className="mt-auto pt-10 sm:mt-8 sm:pt-0">
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
@@ -89,7 +112,7 @@ export default async function Home({ params }: { params: any }) {
           </div>
         </div>
 
-        {/* ✅ sfumatura anche su web */}
+        {/* gradient bottom */}
         <div className="pointer-events-none absolute bottom-0 h-28 sm:h-36 w-full bg-gradient-to-t from-slate-950 to-transparent" />
       </div>
 
