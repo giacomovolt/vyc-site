@@ -43,7 +43,7 @@ export default async function Home({ params }: { params: any }) {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[74%_62%] sm:object-center"
+          className="object-cover object-[62%_62%] sm:object-center"
         />
 
         <div className="absolute inset-0 bg-black/45" />
