@@ -26,7 +26,7 @@ export default async function Home({ params }: { params: any }) {
       brand: "VYC • Vega Yacht Charter",
       headline: "Solal, your connection to the sea.",
       sub:
-        "A relaxed, curated charter along the Croatian coast. Sheltered bays, clear water and calm evenings at anchor. Tell when you want to set sail and we’ll take care of the rest.",
+        "A relaxed, curated charter along the Croatian coast. Sheltered bays, clear water and calm evenings at anchor. Tell us when you want to set sail and we’ll take care of the rest.",
       cta: "Request availability",
       wa: "WhatsApp",
       waText:
@@ -43,7 +43,7 @@ export default async function Home({ params }: { params: any }) {
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[62%_62%] sm:object-center"
+          className="object-cover object-[60%_62%] sm:object-center"
         />
 
         <div className="absolute inset-0 bg-black/45" />
